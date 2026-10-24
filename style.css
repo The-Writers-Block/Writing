@@ -153,6 +153,8 @@ body::before {
   width: 280px;
   max-width: 80vw;
   height: 100vh;
+  height: 100dvh;                /* phone browsers: exclude the address bar */
+  overflow-y: auto;              /* the chapter list can be taller than the screen */
   background: var(--color-white);
   z-index: 300;
   transform: translateX(-100%);
@@ -211,7 +213,7 @@ body::before {
 
 .menu-nav a {
   display: block;
-  padding: 0.9rem 1.5rem;
+  padding: 0.65rem 1.5rem;
   font-family: var(--font-body);
   font-size: 0.95rem;
   color: var(--color-text);
