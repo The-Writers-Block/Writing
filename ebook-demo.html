@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>eBook Demo — A Writer's Block</title>
-  <link rel="stylesheet" href="style.css">
+  <title>eBook — A Writer's Block</title>
+  <link rel="stylesheet" href="style.css?v=2">
   <style>
     .demo-section { margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid var(--color-border); }
     .demo-section:last-of-type { border-bottom: none; }
@@ -13,12 +13,13 @@
     .demo-description { font-size: 0.95rem; color: var(--color-text-muted); margin-bottom: 1.25rem; }
     .btn-demo { display: inline-block; padding: 0.7rem 1.5rem; font-family: var(--font-body); font-size: 0.95rem; font-weight: 500; color: var(--color-white); background-color: var(--color-accent); border: none; border-radius: 4px; cursor: pointer; text-decoration: none; transition: background-color 0.2s; margin-right: 0.75rem; margin-bottom: 0.5rem; }
     .btn-demo:hover { background-color: var(--color-accent-hover); }
-    .book-container { width: 100%; max-width: 600px; margin: 1.5rem auto; }
-    .book { position: relative; width: 100%; background: #fff; border-radius: 4px; box-shadow: 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; }
-    .book-page { padding: 2rem 1.5rem; min-height: 400px; font-family: 'Lora', Georgia, serif; font-size: 0.95rem; line-height: 1.8; color: #2c2c2c; display: none; }
-    .book-page.active { display: block; }
-    .book-page h2 { font-size: 1.4rem; text-align: center; margin-bottom: 1rem; }
-    .book-page .title-page { text-align: center; padding-top: 3rem; }
+    /* Portrait page in the 5.5 x 8.5in trim common to poetry collections; grows if a page runs long */
+    .book-container { width: 100%; max-width: 420px; margin: 1.5rem auto; }
+    .book { position: relative; width: 100%; background: #fffdf9; border-radius: 2px 4px 4px 2px; box-shadow: inset 10px 0 12px -10px rgba(0,0,0,0.18), 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; }
+    .book-page { aspect-ratio: 5.5 / 8.5; min-height: 0; overflow: hidden; padding: 3rem 2.25rem 1.75rem 2.75rem; font-family: 'Lora', Georgia, serif; font-size: 0.92rem; line-height: 1.75; color: #2c2c2c; display: none; flex-direction: column; }
+    .book-page.active { display: flex; }
+    .book-page h2 { font-size: 1.15rem; font-weight: 600; text-align: center; margin: 1.5rem 0 2rem; }
+    .book-page .title-page { text-align: center; margin: auto 0; }
     .book-page .title-page h1 { font-size: 1.8rem; margin-bottom: 0.5rem; font-family: 'Lora', Georgia, serif; }
     .book-page .title-page .subtitle { font-style: italic; color: #6b6b6b; margin-bottom: 2rem; }
     .book-page .title-page .author { font-size: 1.1rem; margin-bottom: 3rem; }
@@ -26,8 +27,12 @@
     .book-page .poem-line { margin: 2px 0; }
     .book-page .poem-line.italic { font-style: italic; }
     .book-page .stanza-gap { height: 1rem; }
-    .book-page hr { border: none; border-top: 1px solid #d8d4cf; margin: 1.5rem 3rem; }
-    .book-page .page-num { text-align: center; font-size: 0.8rem; color: #999; margin-top: 1.5rem; }
+    .book-page hr { display: none; }
+    .book-page .chapter-heading { font-size: 1.35em; font-weight: 700; margin: 0.5rem 0 0.4rem; }
+    .book-page.doc, .book-page .doc-p { line-height: 1.45; }
+    /* A verse line too long for the page wraps with a hanging indent, as poetry books set it */
+    .book-page .doc-l, .book-page .doc-p.tight { padding-left: 1.25em; text-indent: -1.25em; }
+    .book-page .page-num { text-align: center; font-size: 0.75rem; color: #999; margin-top: auto; padding-top: 1.5rem; }
     .book-page .foreword-text { line-height: 1.9; }
     .book-page .foreword-text p { margin-bottom: 1rem; }
     .book-page .sign-off { font-style: italic; color: #4a5a3a; margin-top: 1.5rem; }
@@ -37,7 +42,8 @@
     .book-controls button:hover { background: #e8ece4; border-color: #4a5a3a; }
     .book-controls button:disabled { opacity: 0.3; cursor: default; }
     .book-controls button:disabled:hover { background: none; border-color: #d8d4cf; }
-    @media (max-width: 480px) { .book-page { padding: 1.25rem 1rem; min-height: 350px; font-size: 0.85rem; } .book-page .title-page h1 { font-size: 1.4rem; } }
+    @media (max-width: 480px) { .book-page { padding: 2rem 1.25rem 1.25rem 1.5rem; font-size: 0.85rem; } .book-page .title-page h1 { font-size: 1.4rem; } }
+    @media (max-width: 360px) { .book-page { padding: 1.5rem 1rem 1rem 1.25rem; font-size: 0.78rem; line-height: 1.55; } .book-page h2 { margin: 0.75rem 0 1.25rem; } .book-page .stanza-gap { height: 0.75rem; } .book-page .foreword-text { line-height: 1.6; } .book-page .foreword-text p { margin-bottom: 0.75rem; } }
   </style>
 </head>
 <body>
@@ -48,12 +54,15 @@
       <button class="menu-close" onclick="closeMenu()" aria-label="Close menu">&times;</button>
     </div>
     <ul class="menu-nav">
-      <li><a href="number2.html">Number 2</a></li>
-      <li><a href="money-spider.html">Money Spider</a></li>
-      <li><a href="isaiah.html">Isaiah</a></li>
+      <li><a href="man-of-the-house.html"><span class="menu-chapter">Chapter 1</span>Man of the House</a></li>
+      <li><a href="when-in-hell-you-need-a-friend.html"><span class="menu-chapter">Chapter 2</span>When in Hell, you need a friend</a></li>
+      <li><a href="isaiah.html"><span class="menu-chapter">Chapter 3</span>Isaiah</a></li>
+      <li><a href="the-wisdom-to-be-foolish.html"><span class="menu-chapter">Chapter 4</span>The Wisdom To Be Foolish</a></li>
+      <li><a href="the-poem.html"><span class="menu-chapter">Chapter 5</span>The Poem</a></li>
+      <li><a href="money-spider.html"><span class="menu-chapter">Chapter 6</span>Money Spider</a></li>
       <li><a href="about.html">About Me</a></li>
       <li><a href="contact.html">Contact Me</a></li>
-      <li><a href="ebook-demo.html" class="active">eBook Demo</a></li>
+      <li><a href="ebook-demo.html" class="active">eBook</a></li>
     </ul>
   </nav>
   <header class="site-header">
@@ -66,124 +75,226 @@
     </div>
   </header>
   <main>
-    <h2>eBook Demo</h2>
-    <p>Three different ways to experience the poems in book format.</p>
+    <h2>eBook</h2>
+    <p>Read the poems as a book right here, or download a PDF copy to print or share.</p>
 
     <div class="demo-section">
-      <span class="demo-badge">Option 1</span>
-      <h3>Interactive Page-Flip Book</h3>
-      <p class="demo-description">A digital book experience right here on the website. Click or swipe to turn pages.</p>
       <div class="book-container">
-        <div class="book">
-          <div class="book-page active" data-page="1">
+        <!-- Pages are laid out from #bookSource by paginate() below; each section starts a new page -->
+        <div class="book" aria-live="polite"></div>
+        <div id="bookSource" hidden>
+          <section class="book-section" data-nonum>
             <div class="title-page">
               <h1>A Writer's Block</h1>
               <p class="subtitle">— Poems —</p>
               <p class="author">Richie</p>
               <p class="year">2026</p>
             </div>
-          </div>
-          <div class="book-page" data-page="2">
+          </section>
+          <section class="book-section" data-nonum>
             <h2>Foreword</h2>
             <div class="foreword-text">
               <p>For the first time, I would like to showcase some of the writings that I have been quietly scribing over the years. You may have seen me in various places with a pen and some piece of paper scribbling away. Well, on here is where it becomes real!</p>
               <p>I have more of my writing coming over the weeks and months ahead, so watch out for more!</p>
               <p class="sign-off">Hasta la vista, baby!</p>
             </div>
-          </div>
-          <div class="book-page" data-page="3">
+          </section>
+          <section class="book-section" data-nonum>
             <h2>Contents</h2>
-            <div class="contents-list">
-              <p>Number 2</p>
-              <p>Money Spider</p>
-              <p>Isaiah</p>
-            </div>
-          </div>
-          <div class="book-page" data-page="4">
-            <h2>number 2</h2>
-            <hr>
-            <div class="poem-line">Recite in the name of the lord who created</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line">created man from a clinging substance</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line">recite and your lord is the most generous</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line">who taught by the pen taught man what he knew not This book is dedicated to my brother</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line">Edward James Clevet</div>
-            <div class="page-num">4</div>
-          </div>
-          <div class="book-page" data-page="5">
-            <div class="poem-line">some bonds are built with compassion love kindness and care others are forged in darkness and held in fear ours was carved shaped then moulded in song dance heartache laughter tears smiles and moments of joy developed was a loyalty that never floundered and a trust that knows no betrayal and a friendship that has stood at the gates and the test of time helped along the way with a double Irish malt whisky not for good measure but was the company we kept the world was our teacher the lessons were hard bleak even harsh and unfair but whoever said life was fare I am my brothers keeper and may the gods always be at your side and if they ever waver and abandon you and you find yourself alone know that I will always come for you and will always be in your corner in this life and the next all my love</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line">Richard this ones for you</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line italic">steelers wheel stuck in the middle with you</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line">chapter 1 man of the house</div>
-            <hr>
-            <div class="page-num">5</div>
-          </div>
-          <div class="book-page" data-page="6">
-            <h2>Money spider</h2>
-            <hr>
-            <div class="poem-line">I remember laying on my prison bunk once flat on my belly on top of my mattress laying there looking at the floor</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line">my head was hanging off the end of the bed and my legs were dangling in the air I was just starring at the floor aimlessly I lost track of time I could of been of staring at the floor for hours for all I know and I remember a little spider crawling along the floor I remember thinking to myself I wonder where you are going little spider in such a hurry I just kept starring at him and watched him hurry towards the gap underneath the cell door and I realised he was also desperate to escape too</div>
-            <div class="page-num">6</div>
-          </div>
-          <div class="book-page" data-page="7">
-            <div class="poem-line">I could of stomped on that little spiders head and squashed him scraping his remains off my boot</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line">killing all his dreams of freedom like mine were and crushing them into oblivion completely forgotten like my future which had become just shadows and dust</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line">but I let him run free</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line">and I knew right then one day my time would come too</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line">and I would also run free</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line">realising I still had one dream left</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line">all I had to do was keep running</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line">and pray no one stamped on my head</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line italic">yesterday The Beetles</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line">Dreams don't die people just stop dreaming</div>
-            <hr>
-            <div class="page-num">7</div>
-          </div>
-          <div class="book-page" data-page="8">
-            <h2>Isaiah</h2>
-            <hr>
-            <div class="poem-line">Isaiah</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line">why should you be beaten anymore why do you</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line">persist in rebellion</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line">your whole head is injured your whole heart afflicted</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line">from the sole of your foot to the top of your head there is no soundness only wounds and bruises and open sores not cleaned or bandaged.</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line">you are desolate</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line">and still you smoke that hell with your fire</div>
-            <div class="stanza-gap"></div>
-            <div class="poem-line">lord I still have clean air in my lungs to pollute</div>
-            <div class="page-num">8</div>
-          </div>
-          <div class="book-page" data-page="9">
-            <div class="poem-line">I can still crawl on my belly or drag my blistered feet across town my body is tired I'm exhausted frail and seem weak my mind is distorted but there's still blood flowing in my veins to poison the fire in my belly is yet to ignite I find no shelter from your bitter wind relentless rain and to you I curse daily with my sharp tongue with such vicious words of hatred I wish to live not yet I'm too afraid to die as I know what awaits me in death you ask why I persist I'm too cowardly to take my own life so I continue to struggle in pain completely lost and destitute hoping one day I shall be found and given a soft bed to lay my crown and maybe even one day find the peace I once knew as a young child but until that day I shall persist and live each day to be beaten relentlessly as I only find comfort in pain</div>
-            <hr>
-            <div class="page-num">9</div>
-          </div>
+            <div class="contents-list"></div>
+          </section>
+          <!-- CHAPTERS:START -->
+          <section class="book-section doc" data-title="Chapter 1: Man of the House">
+            <h2 class="chapter-heading">Chapter 1: Man of the House</h2>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-p tight">Recite in the name of the lord who created,</div>
+            <div class="doc-p tight">created man from a clinging substance — complicated,</div>
+            <div class="doc-p tight">recite and your lord is the most generous,</div>
+            <div class="doc-p tight">most generous,</div>
+            <div class="doc-p tight">who taught by the pen, taught man what he knew not —</div>
+            <div class="doc-p tight">gave us every lesson that we never knew we'd got.</div>
+            <div class="doc-p tight">This book is dedicated to my brother,</div>
+            <div class="doc-p tight"><strong>Edward James Clevet — there will never be another.</strong></div>
+            <div class="doc-p tight">And care others are forged in darkness and held in fear,</div>
+            <div class="doc-p tight">ours was different, ours was built right here —</div>
+            <div class="doc-p tight">carved, shaped, then moulded in song,</div>
+            <div class="doc-p tight">dance, heartache, laughter — we've been at it all along.</div>
+            <div class="doc-p tight">Tears, smiles and moments of joy between the pain,</div>
+            <div class="doc-p tight">the kind of memories you carry through the rain.</div>
+            <div class="doc-p tight">What developed was a loyalty that never floundered,</div>
+            <div class="doc-p tight">a trust that knows no betrayal, never countered,</div>
+            <div class="doc-p tight">and a friendship that has stood at the gates</div>
+            <div class="doc-p tight">and the test of time — through the worst of the worst of states.</div>
+            <div class="doc-p tight">Helped along the way with a double Irish malt whisky,</div>
+            <div class="doc-p tight">not for good measure — nah, that was just the company we'd keep, see.</div>
+            <div class="doc-p tight">The world was our teacher and the lessons hit us hard,</div>
+            <div class="doc-p tight">bleak, even harsh, unfair — every hand a losing card.</div>
+            <div class="doc-p tight">But whoever said life was fair? Nobody I've met.</div>
+            <div class="doc-p tight">And that's a lesson in itself that I won't forget.</div>
+            <div class="doc-p tight">I am my brother's keeper — that's not a line, that's law,</div>
+            <div class="doc-p tight">and may the gods always be at your side through every open door.</div>
+            <div class="doc-p tight">And if they ever waver and abandon you and you find yourself alone,</div>
+            <div class="doc-p tight">know that I will always come for you — that's carved into the bone.</div>
+            <div class="doc-p tight">I will always be in your corner, in this life and the next,</div>
+            <div class="doc-p tight">no hesitation, no conditions, no small print in the text.</div>
+            <div class="doc-p tight"><em>All my love,</em></div>
+            <div class="doc-p tight"><strong>Richard — this one's for you.</strong></div>
+            <div class="doc-p tight"><strong>"Stuck in the Middle with You"*</strong></div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-p tight"><em>* Tribute to the song by Stealers Wheel</em></div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-p tight"><em>July, 2026</em></div>
+          </section>
+          <section class="book-section doc" data-title="Chapter 2: When in Hell, you need a friend">
+            <h2 class="chapter-heading">Chapter 2: When in Hell, you need a friend</h2>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-p"><span class="doc-l">"WHEN IN HELL, YOU NEED A FRIEND"</span><span class="doc-l">not someone who says they'll be there — someone there at the end.</span><span class="doc-l">The war we fight's not only against powers and principles,</span><span class="doc-l">it's against temptation itself — raw, personal, clinical.</span><span class="doc-l">Our battlefields bring us closer to chaos, disaster, despair,</span><span class="doc-l">and when you hit the bottom you find out who's actually there.</span><span class="doc-l">Nobody warns you. Nobody sits you down and explains.</span><span class="doc-l">Nobody tells you the worst bit isn't the death, it's the pain</span><span class="doc-l">of losing hope. The end of dreaming. For all eternity.</span><span class="doc-l">Not a metaphor. Not a lyric. That's what it did to me.</span><span class="doc-l">But victory is always within reach,</span><span class="doc-l">and I didn't read that in a book — that's what the scars teach.</span></div>
+            <div class="doc-p"><span class="doc-l">Revelations — to him who overcomes I will give the right</span><span class="doc-l">to sit with me on my throne, to step out of the night,</span><span class="doc-l">as I overcame and sat with my father on his —</span><span class="doc-l">that's the promise. That's the covenant. That's what redemption is.</span></div>
+            <div class="doc-p"><span class="doc-l">This book and the ones that follow are based on a true story and real events.</span><span class="doc-l">Not dressed up, not dramatised, not hidden behind a fence.</span><span class="doc-l">I'm telling it now because not telling it would be the crime,</span><span class="doc-l">and may God have mercy on my soul — I'm running out of time.</span><span class="doc-l">Forgiveness is earnt through redemption, it's not freely given,</span><span class="doc-l">not a gift, not a pardon, it's the price of keeping on living.</span></div>
+            <div class="doc-p"><span class="doc-l">Dedicated to anyone it reaches, anyone who understands,</span><span class="doc-l">anyone who feels its touch, in the pull, in the shaking of the hands.</span><span class="doc-l">To my mother, my children, my friends, my family — every one,</span><span class="doc-l">to anyone I've ever loved or lost beneath the sun.</span><span class="doc-l">Those I've hated, those I've hurt, those I'm destined to meet,</span><span class="doc-l">tomorrow or the day after, on some ordinary street.</span></div>
+            <div class="doc-p"><span class="doc-l">The poetry is dedicated to none. Not you. Not them. It's mine.</span><span class="doc-l">My only release from the pain, my only flatline</span><span class="doc-l">between the torment and the breathing, the only thing I own,</span><span class="doc-l">the only room I've got where I can be alone.</span></div>
+            <div class="doc-p"><span class="doc-l">And my testament is for those who know no faith at all,</span><span class="doc-l">who've stood at the edge and stared and waited for the fall,</span><span class="doc-l">because "it can only be seen by the eyes of the blind"*,</span><span class="doc-l">the therapist.</span></div>
+            <div class="doc-p"><span class="doc-l">"THE BEGINNING IS THE END AND THE END ONLY EVER JUST THE BEGINNING"</span><span class="doc-l">London. 2023. July.</span></div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-p tight doc-small"><em>* Tribute to the lyric in Billy Joel's "River of Dreams"</em></div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-p tight"><em>July, 2026</em></div>
+          </section>
+          <section class="book-section doc" data-title="Chapter 3: Isaiah">
+            <h2 class="chapter-heading">Chapter 3: Isaiah</h2>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-p">Isaiah</div>
+            <div class="doc-p">why should you be beaten anymore why do you persist in rebellion</div>
+            <div class="doc-p">your whole head is injured your whole heart afflicted</div>
+            <div class="doc-p">from the sole of your foot to the top of your head there is no soundness only wounds and bruises and open sores not cleaned or bandaged.</div>
+            <div class="doc-p">you are desolate</div>
+            <div class="doc-p">and still you smoke that hell with your fire</div>
+            <div class="doc-p">lord I still have clean air in my lungs to pollute</div>
+            <div class="doc-p">I can still crawl on my belly or drag my blistered feet across town my body is tired I'm exhausted frail and seem weak my mind is distorted but there's still blood flowing in my veins to poison the fire in my belly is yet to ignite I find no shelter from your bitter wind relentless rain and to you I curse daily with my sharp tongue with such vicious words of hatred I wish to live not yet I'm too afraid to die as I know what awaits me in death you ask why I persist I'm too cowardly to take my own life so I continue to struggle in pain completely lost and destitute hoping one day I shall be found and given a soft bed to lay my crown and maybe even one day find the peace I once knew as a young child but until that day I shall persist and live each day to be beaten relentlessly as I only find comfort in pain</div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-p tight"><em>August, 2026</em></div>
+          </section>
+          <section class="book-section doc" data-title="Chapter 4: The Wisdom To Be Foolish">
+            <h2 class="chapter-heading">Chapter 4: The Wisdom To Be Foolish</h2>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-p tight">Study with the pen you was given</div>
+            <div class="doc-p tight">question with your Sharpe tongue</div>
+            <div class="doc-p tight">listen with both your ears</div>
+            <div class="doc-p tight">reflect in your heart</div>
+            <div class="doc-p tight">command respect with your softly spoken voice</div>
+            <div class="doc-p tight">and speak words of wisdom and truth that you now know</div>
+            <div class="doc-p tight">and trust in God as I trust in you</div>
+            <div class="doc-blank"></div>
+            <div class="doc-p tight">and after all is said and done</div>
+            <div class="doc-p tight">you can have the weekend off to be as stupid and childish as you so desire</div>
+            <div class="doc-p tight">and I will love you all the same</div>
+            <div class="doc-p tight">Amen</div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-p tight"><em>October, 2026</em></div>
+          </section>
+          <section class="book-section doc" data-title="Chapter 5: The Poem">
+            <h2 class="chapter-heading">Chapter 5: The Poem</h2>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-p tight">The poem I never finished</div>
+            <div class="doc-p tight">diminished responsibilities, so many possibilities</div>
+            <div class="doc-p tight">lost abilities</div>
+            <div class="doc-p tight">threw it away</div>
+            <div class="doc-p tight">time and space will not give way</div>
+            <div class="doc-p tight">not today, not ever</div>
+            <div class="doc-p tight">the poem I had to sever</div>
+            <div class="doc-p tight">cut short not sold not bought or even given much thought</div>
+            <div class="doc-p tight">reading and writing learnt not taught</div>
+            <div class="doc-p tight">too painful to write or insight just fight or flight</div>
+            <div class="doc-p tight">no wrong couldn't write</div>
+            <div class="doc-p tight">I never really started</div>
+            <div class="doc-p tight">same old shit broken hearted</div>
+            <div class="doc-p tight">dearly and deeply departed</div>
+            <div class="doc-p tight">when's your hearts truly broken</div>
+            <div class="doc-p tight">The dead can be woken</div>
+            <div class="doc-p tight">hear their soft words spoken</div>
+            <div class="doc-blank"></div>
+            <div class="doc-p tight">I walk among the dead</div>
+            <div class="doc-p tight">when I sleep with no bed</div>
+            <div class="doc-p tight">completely lost and off my head</div>
+            <div class="doc-p tight">hear the words never been said</div>
+            <div class="doc-p tight">all alone another world I roam</div>
+            <div class="doc-p tight">no family no phone no home to call home</div>
+            <div class="doc-p tight">I lay down to die</div>
+            <div class="doc-p tight">no one to hear me cry</div>
+            <div class="doc-p tight">or question why</div>
+            <div class="doc-p tight">strangers pass on bye</div>
+            <div class="doc-p tight">morning noon to nigh</div>
+            <div class="doc-p tight">am imaginary friend who would stick it out to the ve</div>
+            <div class="doc-p tight">oh what an ending that would be</div>
+            <div class="doc-p tight">and a saw sight to see</div>
+            <div class="doc-p tight">and would mean so very much to me</div>
+            <div class="doc-p tight">instead I speak with the dead</div>
+            <div class="doc-p tight">like you just read</div>
+            <div class="doc-p tight">If I wasn't so lonely</div>
+            <div class="doc-p tight">not one single friend me only</div>
+            <div class="doc-p tight">I could share my writing and continue inciting</div>
+            <div class="doc-p tight">and what an ending that would be</div>
+            <div class="doc-p tight">and something I’ll never see</div>
+            <div class="doc-p tight">as all I have is me</div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-p tight"><em>October, 2026</em></div>
+          </section>
+          <section class="book-section doc" data-title="Chapter 6: Money Spider">
+            <h2 class="chapter-heading">Chapter 6: Money Spider</h2>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-p">I remember laying on my prison bunk once flat on my belly on top of my mattress laying there looking at the floor</div>
+            <div class="doc-p">my head was hanging off the end of the bed and my legs were dangling in the air I was just starring at the floor aimlessly I lost track of time I could of been of staring at the floor for hours for all I know and I remember a little spider crawling along the floor I remember thinking to myself I wonder where you are going little spider in such a hurry I just kept starring at him and watched him hurry towards the gap underneath the cell door and I realised he was also desperate to escape too</div>
+            <div class="doc-p">I could have stomped on that little spider’s head and squashed him scraping his remains off my boot</div>
+            <div class="doc-p">killing all his dreams of freedom like mine were and crushing them into oblivion completely forgotten like my future which had become just shadows and dust</div>
+            <div class="doc-p">but I let him run free</div>
+            <div class="doc-p">and I knew right then one day my time would come too</div>
+            <div class="doc-p">and I would also run free</div>
+            <div class="doc-p">realising I still had one dream left</div>
+            <div class="doc-p">all I had to do was keep running</div>
+            <div class="doc-p">and pray no one stamped on my head</div>
+            <div class="doc-p" style="margin-left: 40%">“Yesterday”, The Beatles</div>
+            <div class="doc-p">Dreams don't die people - they just stop dreaming</div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-blank"></div>
+            <div class="doc-p tight"><em>August, 2026</em></div>
+          </section>
+          <!-- CHAPTERS:END -->
         </div>
         <div class="book-controls">
           <button id="prevBtn" onclick="prevPage()" disabled>← Previous</button>
-          <span id="pageIndicator">Page 1 of 9</span>
+          <span id="pageIndicator">Page 1 of 11</span>
           <button id="nextBtn" onclick="nextPage()">Next →</button>
         </div>
       </div>
@@ -194,13 +305,6 @@
       <h3>Downloadable PDF Book</h3>
       <p class="demo-description">A beautifully formatted A5 book with title page, foreword, contents, and poems. Ready to print or share.</p>
       <a href="awritersblock_book.pdf" class="btn-demo" download>Download PDF Book</a>
-    </div>
-
-    <div class="demo-section">
-      <span class="demo-badge">Option 3</span>
-      <h3>ePub eBook</h3>
-      <p class="demo-description">Standard eBook format compatible with Kindle, Apple Books, Kobo, and all major eReaders.</p>
-      <a href="awritersblock_book.epub" class="btn-demo" download>Download ePub</a>
     </div>
 
     <a href="index.html" class="back-link">← Back to Home</a>
@@ -214,8 +318,95 @@
   <script>
     function openMenu() { document.getElementById('menuOverlay').classList.add('open'); document.getElementById('menuPanel').classList.add('open'); }
     function closeMenu() { document.getElementById('menuOverlay').classList.remove('open'); document.getElementById('menuPanel').classList.remove('open'); }
-    var currentPage = 1, totalPages = 9;
+    var currentPage = 1, totalPages = 1;
     function showPage(num) { document.querySelectorAll('.book-page').forEach(function(p) { p.classList.remove('active'); }); document.querySelector('.book-page[data-page="' + num + '"]').classList.add('active'); document.getElementById('pageIndicator').textContent = 'Page ' + num + ' of ' + totalPages; document.getElementById('prevBtn').disabled = (num === 1); document.getElementById('nextBtn').disabled = (num === totalPages); }
+
+    // ---- Pagination: flow each source section onto fixed-size pages ----
+    var book = document.querySelector('.book');
+    var sections = document.querySelectorAll('#bookSource > .book-section');
+    var page, pageNum, pageCount;
+
+    // Contents page lists every titled section
+    var contents = document.querySelector('#bookSource .contents-list');
+    sections.forEach(function(s) { if (s.dataset.title) { var p = document.createElement('p'); p.textContent = s.dataset.title; contents.appendChild(p); } });
+
+    function overflows() { return page.scrollHeight > page.clientHeight + 1; }
+    function isEmpty() { return page.children.length === 1; }
+    function isBlank(el) { return el.classList.contains('doc-blank') || el.classList.contains('stanza-gap'); }
+    function startPage(section) {
+      pageCount++;
+      page = document.createElement('div');
+      page.className = 'book-page active';
+      if (section.classList.contains('doc')) page.classList.add('doc'); // Word-document formatting
+      page.dataset.page = pageCount;
+      pageNum = document.createElement('div');
+      pageNum.className = 'page-num';
+      pageNum.textContent = section.hasAttribute('data-nonum') ? '' : pageCount;
+      page.appendChild(pageNum);
+      book.appendChild(page);
+    }
+    function nextPage_(section) { page.classList.remove('active'); startPage(section); }
+
+    // Fit as much of an overflowing block as possible on the current page; return the rest (or null if nothing fits)
+    function split(block) {
+      var rest = block.cloneNode(false);
+      var lines = block.querySelectorAll(':scope > .doc-l');
+      if (lines.length > 1) {
+        while (overflows() && block.children.length) rest.insertBefore(block.lastElementChild, rest.firstChild);
+        if (!block.children.length) { while (rest.firstChild) block.appendChild(rest.firstChild); block.remove(); return null; }
+        return rest;
+      }
+      if (block.children.length) { block.remove(); return null; } // formatted text we don't break mid-way
+      var words = block.textContent.split(' '), lo = 0, hi = words.length;
+      while (lo < hi) { var mid = Math.ceil((lo + hi) / 2); block.textContent = words.slice(0, mid).join(' '); if (overflows()) hi = mid - 1; else lo = mid; }
+      if (lo === 0) { block.remove(); block.textContent = words.join(' '); return null; }
+      block.textContent = words.slice(0, lo).join(' ');
+      rest.textContent = words.slice(lo).join(' ');
+      rest.classList.add('cont');
+      return rest;
+    }
+    function place(block, section) {
+      if (isBlank(block) && isEmpty()) return;
+      page.insertBefore(block, pageNum);
+      if (!overflows()) return;
+      var rest = split(block);
+      if (rest === null) {
+        if (isEmpty()) { page.insertBefore(block, pageNum); return; } // too big even alone: let it be clipped rather than loop
+        nextPage_(section);
+        return place(block, section);
+      }
+      nextPage_(section);
+      place(rest, section);
+    }
+    function paginate() {
+      var wasOn = currentPage, before = totalPages;
+      book.innerHTML = '';
+      pageCount = 0;
+      sections.forEach(function(section, i) {
+        if (i) page.classList.remove('active');
+        startPage(section);
+        var firstPage = page;
+        Array.prototype.forEach.call(section.children, function(child) { place(child.cloneNode(true), section); });
+        // Don't leave a chapter's closing date alone on a page: bring the line before it along
+        var content = Array.prototype.filter.call(page.children, function(c) { return c !== pageNum && !isBlank(c); });
+        var prev = page.previousElementSibling;
+        if (page !== firstPage && content.length === 1 && prev) {
+          var last = prev.lastElementChild.previousElementSibling; // skip the page number
+          while (last && isBlank(last)) { var b = last.previousElementSibling; last.remove(); last = b; }
+          if (last && prev.children.length > 2) page.insertBefore(last, page.firstChild);
+        }
+      });
+      totalPages = pageCount;
+      currentPage = Math.max(1, Math.min(totalPages, Math.round(wasOn / before * totalPages) || 1));
+      showPage(currentPage);
+    }
+
+    var laidOutWidth = 0;
+    function relayout() { var w = book.clientWidth; if (w && w !== laidOutWidth) { laidOutWidth = w; paginate(); } }
+    relayout();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(function() { laidOutWidth = 0; relayout(); });
+    var resizeTimer;
+    window.addEventListener('resize', function() { clearTimeout(resizeTimer); resizeTimer = setTimeout(relayout, 150); });
     function nextPage() { if (currentPage < totalPages) { currentPage++; showPage(currentPage); } }
     function prevPage() { if (currentPage > 1) { currentPage--; showPage(currentPage); } }
     var touchStartX = 0;

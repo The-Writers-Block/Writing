@@ -1,0 +1,5 @@
+# Never convert line endings in these
+*.pdf binary
+*.epub binary
+*.docx binary
+*.png binary
