@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>eBook — A Writer's Block</title>
-  <link rel="stylesheet" href="style.css?v=3">
+  <link rel="stylesheet" href="style.css?v=6">
   <style>
     .demo-section { margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 1px solid var(--color-border); }
     .demo-section:last-of-type { border-bottom: none; }
@@ -16,7 +16,7 @@
     /* Portrait page in the 5.5 x 8.5in trim common to poetry collections; grows if a page runs long */
     .book-container { width: 100%; max-width: 420px; margin: 1.5rem auto; }
     .book { position: relative; width: 100%; background: #fffdf9; border-radius: 2px 4px 4px 2px; box-shadow: inset 10px 0 12px -10px rgba(0,0,0,0.18), 0 4px 20px rgba(0,0,0,0.15); overflow: hidden; }
-    .book-page { aspect-ratio: 5.5 / 8.5; min-height: 0; overflow: hidden; padding: 3rem 2.25rem 1.75rem 2.75rem; font-family: 'Lora', Georgia, serif; font-size: 0.736rem; line-height: 1.75; color: #2c2c2c; display: none; flex-direction: column; }
+    .book-page { aspect-ratio: 5.5 / 8.5; min-height: 0; overflow: hidden; padding: 3rem 2.25rem 1.75rem 2.75rem; font-family: 'Lora', Georgia, serif; font-size: 0.6624rem; line-height: 1.75; color: #2c2c2c; display: none; flex-direction: column; }
     .book-page.active { display: flex; }
     .book-page h2 { font-size: 1.15rem; font-weight: 600; text-align: center; margin: 1.5rem 0 2rem; }
     .book-page .title-page { text-align: center; margin: auto 0; }
@@ -28,7 +28,7 @@
     .book-page .poem-line.italic { font-style: italic; }
     .book-page .stanza-gap { height: 1rem; }
     .book-page hr { display: none; }
-    .book-page .chapter-heading { font-size: 1.35em; font-weight: 700; margin: 0.5rem 0 0.4rem; }
+    .book-page .chapter-heading { font-size: 1.5em; font-weight: 700; margin: 0.5rem 0 0.4rem; }
     .book-page.doc, .book-page .doc-p { line-height: 1.45; }
     /* A verse line too long for the page wraps with a hanging indent, as poetry books set it */
     .book-page .doc-l, .book-page .doc-p.tight { padding-left: 1.25em; text-indent: -1.25em; }
@@ -42,8 +42,8 @@
     .book-controls button:hover { background: #e8ece4; border-color: #4a5a3a; }
     .book-controls button:disabled { opacity: 0.3; cursor: default; }
     .book-controls button:disabled:hover { background: none; border-color: #d8d4cf; }
-    @media (max-width: 480px) { .book-page { padding: 2rem 1.25rem 1.25rem 1.5rem; font-size: 0.68rem; } .book-page .title-page h1 { font-size: 1.4rem; } }
-    @media (max-width: 360px) { .book-page { padding: 1.5rem 1rem 1rem 1.25rem; font-size: 0.624rem; line-height: 1.55; } .book-page h2 { margin: 0.75rem 0 1.25rem; } .book-page .stanza-gap { height: 0.75rem; } .book-page .foreword-text { line-height: 1.6; } .book-page .foreword-text p { margin-bottom: 0.75rem; } }
+    @media (max-width: 480px) { .book-page { padding: 2rem 1.25rem 1.25rem 1.5rem; font-size: max(0.612rem, 10px); } .book-page .title-page h1 { font-size: 1.4rem; } }
+    @media (max-width: 360px) { .book-page { padding: 1.5rem 1rem 1rem 1.25rem; font-size: max(0.5616rem, 10px); line-height: 1.55; } .book-page h2 { margin: 0.75rem 0 1.25rem; } .book-page .stanza-gap { height: 0.75rem; } .book-page .foreword-text { line-height: 1.6; } .book-page .foreword-text p { margin-bottom: 0.75rem; } }
   </style>
 </head>
 <body>
