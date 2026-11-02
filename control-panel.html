@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex, nofollow">
+    <title>Control Panel — A Writer's Block</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Lora:wght@600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent: #4a5a3a;
+            --accent-dark: #3a4a2c;
+            --accent-soft: #e8ece4;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            padding: 2rem 1rem 4rem;
+            background: #faf8f5;
+            color: #2c2c2c;
+            font-family: Inter, "Segoe UI", sans-serif;
+            line-height: 1.5;
+        }
+
+        .hidden { display: none; }
+
+        #loginForm {
+            max-width: 420px;
+            margin: 4rem auto;
+            background: #fff;
+            padding: 2.5rem 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        }
+
+        #loginForm h2,
+        .panel-header h1,
+        .panel-section h2,
+        .chapter-item h3,
+        .delete-chapter-item h3 {
+            font-family: Lora, Georgia, serif;
+            color: var(--accent);
+        }
+
+        #loginForm h2 { text-align: center; margin: 0 0 1.5rem; }
+
+        .control-panel-container { max-width: 920px; margin: 0 auto; }
+
+        .panel-header,
+        .panel-section {
+            background: #fff;
+            padding: 1.75rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.06);
+            margin-bottom: 1.25rem;
+        }
+
+        .panel-header-top {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: flex-start;
+        }
+
+        .panel-header h1 { margin: 0 0 0.35rem; font-size: 2rem; }
+        .panel-header p,
+        .hint { color: #6b6b6b; margin: 0.35rem 0 0; }
+
+        .panel-section h2 {
+            margin: 0 0 1rem;
+            padding-bottom: 0.4rem;
+            border-bottom: 2px solid var(--accent);
+            font-size: 1.5rem;
+        }
+
+        .panel-nav { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 1.25rem; }
+
+        .token-stack {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+
+        .choice-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.25rem; }
+        .choice-back { margin-bottom: 1rem; }
+
+        .panel-nav-tab {
+            padding: 0.65rem 1.1rem;
+            background: #fff;
+            border: 2px solid var(--accent);
+            border-radius: 4px;
+            color: var(--accent);
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+        }
+
+        .panel-nav-tab.active,
+        .btn { background: var(--accent); color: #fff; }
+
+        .panel-nav-tab:hover { background: var(--accent-soft); }
+        .panel-nav-tab.active:hover,
+        .btn:hover { background: var(--accent-dark); }
+
+        .form-group,
+        .editable-field { margin-bottom: 1rem; }
+
+        label { display: block; margin-bottom: 0.35rem; font-weight: 600; }
+
+        input[type="text"],
+        input[type="email"],
+        input[type="password"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 0.7rem 0.75rem;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            font: inherit;
+            color: inherit;
+            background: #fff;
+        }
+
+        textarea {
+            min-height: 220px;
+            resize: vertical;
+            font-family: Lora, Georgia, serif;
+            line-height: 1.55;
+        }
+
+        input:focus,
+        textarea:focus { outline: none; border-color: var(--accent); }
+
+        .btn {
+            border: none;
+            border-radius: 4px;
+            padding: 0.7rem 1.2rem;
+            font: inherit;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .btn-block { width: 100%; }
+        .btn-secondary { background: #6c757d; }
+        .btn-secondary:hover { background: #5a6268; }
+        .btn-danger { background: #9a3b32; }
+        .btn-danger:hover { background: #7d2e27; }
+        a.btn { text-decoration: none; display: inline-block; }
+
+        .verse-option {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+            font-weight: 500;
+        }
+
+        .verse-option input { width: auto; }
+
+        .error-message,
+        .success-message {
+            margin-top: 1rem;
+            padding: 0.75rem;
+            border-radius: 4px;
+        }
+
+        .error-message { color: #7d2e27; background: #f8d7da; border: 1px solid #f5c6cb; }
+        .success-message { color: #155724; background: #d4edda; border: 1px solid #c3e6cb; }
+
+        .chapter-item,
+        .delete-chapter-item {
+            background: #faf8f5;
+            border: 2px solid #e4e0da;
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin-bottom: 1rem;
+        }
+
+        .delete-chapter-item {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        .delete-chapter-item h3,
+        .chapter-item h3 { margin: 0 0 0.75rem; }
+        .delete-chapter-item h3 { margin: 0; }
+        .delete-chapter-item p { margin: 0.2rem 0 0; color: #6b6b6b; }
+
+        .empty-note { color: #6b6b6b; text-align: center; padding: 2rem 0; }
+
+        .token-status {
+            display: inline-block;
+            padding: 0.45rem 0.8rem;
+            border-radius: 4px;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .token-status.configured { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .token-status.not-configured { background: #fff3cd; color: #856404; border: 1px solid #ffeeba; }
+
+        .button-row { display: flex; flex-wrap: wrap; gap: 0.5rem; }
+
+        #panelToast {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            max-width: 420px;
+            padding: 1rem 1.15rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+            z-index: 20;
+            font-weight: 600;
+        }
+
+        #panelToast.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        #panelToast.error { background: #f8d7da; color: #7d2e27; border: 1px solid #f5c6cb; }
+
+        .analytics-table { width: 100%; border-collapse: collapse; margin: 0.75rem 0 1.25rem; }
+        .analytics-table th,
+        .analytics-table td { text-align: left; padding: 0.45rem 0.5rem; border-bottom: 1px solid #e4e0da; }
+        .analytics-block h3 { color: var(--accent); font-family: Lora, Georgia, serif; }
+
+        @media (max-width: 640px) {
+            .delete-chapter-item { flex-direction: column; align-items: stretch; }
+        }
+    </style>
+</head>
+<body>
+    <div id="loginForm">
+        <h2>Admin Login</h2>
+        <form id="loginFormElement" onsubmit="return false;">
+            <div class="form-group">
+                <label for="usernameInput">Username</label>
+                <input type="email" id="usernameInput" autocomplete="username" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="passwordInput">Password</label>
+                <input type="password" id="passwordInput" autocomplete="current-password" required>
+            </div>
+            <button type="button" class="btn btn-block" onclick="checkPassword()">Login</button>
+            <div id="loginError" class="error-message hidden"></div>
+        </form>
+    </div>
+
+    <div id="panelToast" class="hidden" role="status" aria-live="polite"></div>
+
+    <div id="controlPanel" class="hidden">
+        <div class="control-panel-container">
+            <div class="panel-header">
+                <div class="panel-header-top">
+                    <div>
+                        <h1>A Writer's Block — Control Panel</h1>
+                        <p>Add, edit, and remove chapters or thoughts. Chapters are part of the eBook. Musings are contained on the website, and changes will reflect within minutes of an update.</p>
+                    </div>
+                    <a class="btn btn-secondary" href="index.html">← Back to website</a>
+                </div>
+            </div>
+
+            <nav class="panel-nav" aria-label="Control panel sections">
+                <button type="button" class="panel-nav-tab active" data-view="add" onclick="showPanelView('add', this)">Add</button>
+                <button type="button" class="panel-nav-tab" data-view="edit" onclick="showPanelView('edit', this)">Edit</button>
+                <button type="button" class="panel-nav-tab" data-view="delete" onclick="showPanelView('delete', this)">Delete</button>
+                <button type="button" class="panel-nav-tab" data-view="archive" onclick="showPanelView('archive', this)">Archive</button>
+            </nav>
+
+            <div id="panelViewAdd" class="panel-section">
+                <h2>Add</h2>
+                <div id="addChoice" class="choice-row">
+                    <button type="button" class="btn" onclick="showAddKind('chapter')">Add New Chapter</button>
+                    <button type="button" class="btn" onclick="showAddKind('thought')">Create New Thought</button>
+                </div>
+                <div id="addChapterPane" class="hidden">
+                <button type="button" class="btn btn-secondary choice-back" onclick="showAddKind(null)">← Back</button>
+                <h2>Add New Chapter</h2>
+                <form id="addChapterForm" onsubmit="return false;">
+                    <div class="form-group">
+                        <label for="chapterNumber">Chapter number</label>
+                        <input type="number" id="chapterNumber" data-field="number" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="chapterTitle">Title</label>
+                        <input type="text" id="chapterTitle" data-field="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="chapterWritten">Written (optional)</label>
+                        <input type="text" id="chapterWritten" data-field="written" placeholder="October 2026">
+                    </div>
+                    <div class="form-group">
+                        <label for="chapterBody">Writing</label>
+                        <textarea id="chapterBody" data-field="body" lang="en" spellcheck="true" placeholder="One line per line. A blank line leaves a gap."></textarea>
+                        <p class="hint">A closing line such as October, 2026 is shown in italics. Lines copied from an existing chapter may already contain tags such as &lt;em&gt; or &lt;strong&gt; — leave those unless you mean to change the formatting.</p>
+                    </div>
+                    <label class="verse-option">
+                        <input type="checkbox" data-field="verse">
+                        Verse spacing (tighter lines, as in the shorter poems)
+                    </label>
+                    <button type="button" class="btn btn-block" onclick="addChapter()">Add chapter</button>
+                    <div id="addChapterMessage"></div>
+                </form>
+                </div>
+                <div id="addThoughtPane" class="hidden">
+                <button type="button" class="btn btn-secondary choice-back" onclick="showAddKind(null)">← Back</button>
+                <h2>Create New Thought</h2>
+                <form id="addThoughtForm" onsubmit="return false;">
+                    <div class="form-group">
+                        <label for="thoughtTitle">Title</label>
+                        <input type="text" id="thoughtTitle" data-field="title" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="thoughtWritten">Written (optional)</label>
+                        <input type="text" id="thoughtWritten" data-field="written" placeholder="October 2026">
+                    </div>
+                    <div class="form-group">
+                        <label for="thoughtBody">Writing</label>
+                        <textarea id="thoughtBody" data-field="body" lang="en" spellcheck="true" placeholder="One line per line. A blank line leaves a gap."></textarea>
+                    </div>
+                    <label class="verse-option">
+                        <input type="checkbox" data-field="verse">
+                        Verse spacing (tighter lines, as in the shorter poems)
+                    </label>
+                    <button type="button" class="btn btn-block" onclick="addThought()">Create thought</button>
+                    <div id="addThoughtMessage"></div>
+                </form>
+                </div>
+            </div>
+
+            <div id="panelViewEdit" class="panel-section hidden">
+                <h2>Edit</h2>
+                <div id="editChoice" class="choice-row">
+                    <button type="button" class="btn" onclick="showEditKind('chapter')">Edit Chapter</button>
+                    <button type="button" class="btn" onclick="showEditKind('thought')">Edit Thought</button>
+                </div>
+                <div id="editChapterPane" class="hidden">
+                    <button type="button" class="btn btn-secondary choice-back" onclick="showEditKind(null)">← Back</button>
+                    <h2>Edit Chapter</h2>
+                    <p class="hint">Chapter edits are part of the eBook, and changes will reflect within minutes of an update. The previous writing and the change are deposited in Archive for 6 months.</p>
+                    <div id="chaptersList"></div>
+                </div>
+                <div id="editThoughtPane" class="hidden">
+                    <button type="button" class="btn btn-secondary choice-back" onclick="showEditKind(null)">← Back</button>
+                    <h2>Edit Thought</h2>
+                    <p class="hint">Musings are contained on the website, and changes will reflect within minutes of an update. The previous writing and the change are deposited in Archive for 6 months.</p>
+                    <div id="thoughtsList"></div>
+                </div>
+            </div>
+
+            <div id="panelViewDelete" class="panel-section hidden">
+                <h2>Delete</h2>
+                <div id="deleteChoice" class="choice-row">
+                    <button type="button" class="btn" onclick="showDeleteKind('chapter')">Delete Chapter</button>
+                    <button type="button" class="btn" onclick="showDeleteKind('thought')">Delete Thought</button>
+                </div>
+                <div id="deleteChapterPane" class="hidden">
+                    <button type="button" class="btn btn-secondary choice-back" onclick="showDeleteKind(null)">← Back</button>
+                    <h2>Delete Chapter</h2>
+                    <p class="hint">Deleting a chapter removes it from the eBook, and the change will reflect within minutes of an update. The deleted writing is deposited in Archive for 6 months.</p>
+                    <div id="chaptersDeleteList"></div>
+                </div>
+                <div id="deleteThoughtPane" class="hidden">
+                    <button type="button" class="btn btn-secondary choice-back" onclick="showDeleteKind(null)">← Back</button>
+                    <h2>Delete Thought</h2>
+                    <p class="hint">Deleting a musing removes it from the website, and the change will reflect within minutes of an update. The deleted writing is deposited in Archive for 6 months.</p>
+                    <div id="thoughtsDeleteList"></div>
+                </div>
+            </div>
+
+            <div id="panelViewArchive" class="panel-section hidden">
+                <h2>Archive</h2>
+                <p class="hint">Each change deposits an audit note, the writing from before the change, and the writing at the time of the change. Archive keeps these for 6 months.</p>
+                <div id="archiveList"></div>
+            </div>
+
+            <div id="panelViewAnalytics" class="panel-section hidden">
+                <h2>Site analytics</h2>
+                <button type="button" class="btn" onclick="loadAnalyticsDashboard()">Refresh</button>
+                <div id="analyticsDashboard" style="margin-top: 1.25rem;"></div>
+            </div>
+
+            <div id="panelViewToken" class="panel-section hidden">
+                <h2>Token Admin</h2>
+                <p class="hint">Enter the Github Classic Token provided by Admin</p>
+                <div id="tokenAdminStatus" class="token-status not-configured" role="status">Not configured</div>
+                <div class="button-row">
+                    <button type="button" class="btn" onclick="saveGitHubToken()">Save Token</button>
+                    <button type="button" class="btn btn-secondary" onclick="clearGitHubToken()">Clear Token</button>
+                </div>
+                <p class="hint">The token stays in this browser only.</p>
+            </div>
+
+            <div class="token-stack">
+                <button type="button" class="panel-nav-tab" data-view="token" onclick="showPanelView('token', this)">Token Admin</button>
+                <button type="button" class="panel-nav-tab" data-view="analytics" onclick="showPanelView('analytics', this)">Analytics</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="chapter-generator.js?v=20261102-4"></script>
+    <script src="analytics-dashboard.js?v=20261102-3"></script>
+    <script src="control-panel.js?v=20261102-9"></script>
+</body>
+</html>

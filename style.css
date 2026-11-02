@@ -366,6 +366,25 @@ main p {
   font-weight: 700;
 }
 
+.musing {
+  margin: 2rem 0 0;
+  padding: 1.5rem 1.35rem 1.25rem;
+  background: var(--color-white);
+  border: 2px solid var(--color-accent);
+  border-radius: 4px;
+}
+
+.musing h3 {
+  margin: 0 0 0.35rem;
+  text-align: center;
+}
+
+.musing .menu-chapter {
+  display: block;
+  text-align: center;
+  margin-bottom: 1rem;
+}
+
 .doc .doc-p {
   margin: 0 0 0.67em;            /* Word's 8pt space after */
 }
