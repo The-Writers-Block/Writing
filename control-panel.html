@@ -90,6 +90,26 @@
         .choice-row { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-bottom: 1.25rem; }
         .choice-back { margin-bottom: 1rem; }
 
+        .publish-tracker {
+            margin: 0 0 1.25rem;
+            padding: 1rem 1.1rem;
+            background: #fff;
+            border: 2px solid var(--accent);
+            border-radius: 4px;
+        }
+
+        .publish-tracker h2 {
+            font-size: 1.15rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .publish-tracker ol { margin: 0 0 0.75rem 1.2rem; }
+
+        .publish-tracker li.done { color: #155724; }
+        .publish-tracker li.current { font-weight: 700; }
+        .publish-tracker li.failed { color: #7d2e27; font-weight: 700; }
+        .publish-tracker li.waiting { color: #6b6b6b; }
+
         .panel-nav-tab {
             padding: 0.65rem 1.1rem;
             background: #fff;
@@ -271,6 +291,17 @@
                 <button type="button" class="panel-nav-tab" data-view="archive" onclick="showPanelView('archive', this)">Archive</button>
             </nav>
 
+            <section id="publishTracker" class="publish-tracker" aria-live="polite">
+                <h2>Where the writing is</h2>
+                <ol id="publishTrackerSteps">
+                    <li data-step="browser" class="waiting">In this browser</li>
+                    <li data-step="token" class="waiting">GitHub token</li>
+                    <li data-step="github" class="waiting">Sent to GitHub</li>
+                    <li data-step="site" class="waiting">On the website</li>
+                </ol>
+                <p id="publishTrackerDetail" class="hint">Nothing is waiting to be sent.</p>
+            </section>
+
             <div id="panelViewAdd" class="panel-section">
                 <h2>Add</h2>
                 <div id="addChoice" class="choice-row">
@@ -322,10 +353,6 @@
                         <label for="thoughtBody">Writing</label>
                         <textarea id="thoughtBody" data-field="body" lang="en" spellcheck="true" placeholder="One line per line. A blank line leaves a gap."></textarea>
                     </div>
-                    <label class="verse-option">
-                        <input type="checkbox" data-field="verse">
-                        Verse spacing (tighter lines, as in the shorter poems)
-                    </label>
                     <button type="button" class="btn btn-block" onclick="addThought()">Create thought</button>
                     <div id="addThoughtMessage"></div>
                 </form>
@@ -404,6 +431,6 @@
 
     <script src="chapter-generator.js?v=20261102-4"></script>
     <script src="analytics-dashboard.js?v=20261102-3"></script>
-    <script src="control-panel.js?v=20261102-9"></script>
+    <script src="control-panel.js?v=20261103-4"></script>
 </body>
 </html>

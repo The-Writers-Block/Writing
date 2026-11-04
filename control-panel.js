@@ -10,6 +10,8 @@ const ADMIN_ACCOUNTS = [
 const SESSION_KEY = 'writersBlockControlPanelSession';
 const TOKEN_KEY = 'writersBlockGithubToken';
 const TOKEN_LOGIN_KEY = 'writersBlockGithubLogin';
+const PENDING_KEY = 'writersBlockUnsentWritings';
+const TRACK_STEPS = ['browser', 'token', 'github', 'site'];
 
 const GITHUB_CONFIG = {
     owner: 'The-Writers-Block',
@@ -24,6 +26,8 @@ let archive = { keptForMonths: 6, entries: [], report: [] };
 let publishing = false;
 let publishQueued = false;
 let warnedLocalOnly = false;
+let publishLabel = 'This writing';
+let publishUnsent = false;
 const saveTimers = {};
 
 function normalizeAdminUsername(value) {
@@ -181,6 +185,53 @@ function loadGitHubTokenStatus() {
     statusEl.className = token ? 'token-status configured' : 'token-status not-configured';
 }
 
+function githubHeaders(token, forJsonBody) {
+    const headers = {
+        Authorization: 'token ' + token,
+        Accept: 'application/vnd.github.v3+json'
+    };
+    if (forJsonBody) headers['Content-Type'] = 'application/json';
+    return headers;
+}
+
+function githubErrorMessage(error, fallback) {
+    const message = String((error && error.message) || fallback || 'GitHub refused the request');
+    const extra = error && error.documentation_url ? ' See GitHub token permissions.' : '';
+    return message + extra;
+}
+
+async function confirmTokenCanPublish(token) {
+    const headers = githubHeaders(token);
+    const userResponse = await fetch('https://api.github.com/user', { headers });
+    if (!userResponse.ok) {
+        throw new Error('GitHub rejected that token.');
+    }
+    const user = await userResponse.json();
+    const login = user.login || '';
+    const scopes = String(userResponse.headers.get('X-OAuth-Scopes') || '')
+        .split(',')
+        .map((scope) => scope.trim())
+        .filter(Boolean);
+    const repoResponse = await fetch(
+        'https://api.github.com/repos/' + GITHUB_CONFIG.owner + '/' + GITHUB_CONFIG.repo,
+        { headers }
+    );
+    if (!repoResponse.ok) {
+        throw new Error('That token cannot see The-Writers-Block/Writing.');
+    }
+    const repo = await repoResponse.json();
+    const canPush = !!(repo.permissions && repo.permissions.push);
+    const needsRepoScope = scopes.length > 0;
+    const hasRepoScope = scopes.includes('repo') || scopes.includes('public_repo');
+    if (!canPush || (needsRepoScope && !hasRepoScope)) {
+        throw new Error(
+            'GitHub accepted the token for ' + (login || 'this user')
+            + ', but it cannot publish to The-Writers-Block/Writing. The token must have write access to that repository.'
+        );
+    }
+    return login;
+}
+
 async function saveGitHubToken() {
     const existing = getGitHubToken();
     const entered = prompt(existing ? 'Enter the one Github Classic Token issued to you by Admin (cancel to keep the current one):' : 'Enter the one Github Classic Token issued to you by Admin');
@@ -195,25 +246,11 @@ async function saveGitHubToken() {
         return;
     }
 
-    const headers = {
-        Authorization: 'token ' + token,
-        Accept: 'application/vnd.github.v3+json'
-    };
     let login = '';
     try {
-        const userResponse = await fetch('https://api.github.com/user', { headers });
-        if (!userResponse.ok) {
-            showPanelToast('GitHub rejected that token. Enter the one Github Classic Token issued by Admin.', true);
-            return;
-        }
-        login = (await userResponse.json()).login || '';
-        const repoResponse = await fetch('https://api.github.com/repos/' + GITHUB_CONFIG.owner + '/' + GITHUB_CONFIG.repo, { headers });
-        if (!repoResponse.ok) {
-            showPanelToast('That token cannot publish to The-Writers-Block/Writing. Enter the one Github Classic Token issued by Admin.', true);
-            return;
-        }
+        login = await confirmTokenCanPublish(token);
     } catch (error) {
-        showPanelToast('Could not reach GitHub to check the token.', true);
+        showPanelToast(error.message || 'Could not reach GitHub to check the token.', true);
         return;
     }
 
@@ -227,6 +264,7 @@ async function saveGitHubToken() {
     warnedLocalOnly = false;
     showPanelToast('Token saved for GitHub user ' + login + '.', false);
     loadGitHubTokenStatus();
+    if (publishUnsent) queuePublish();
 }
 
 function clearGitHubToken() {
@@ -251,6 +289,84 @@ function showPanelToast(message, isError) {
     el.classList.add(isError ? 'error' : 'success');
     clearTimeout(showPanelToast._t);
     showPanelToast._t = setTimeout(() => el.classList.add('hidden'), isError ? 8000 : 4000);
+}
+
+function setPublishTracker(states, detail) {
+    const root = document.getElementById('publishTracker');
+    if (!root) return;
+    TRACK_STEPS.forEach((step) => {
+        const item = root.querySelector('[data-step="' + step + '"]');
+        if (item) item.className = states[step] || 'waiting';
+    });
+    const note = document.getElementById('publishTrackerDetail');
+    if (note) note.textContent = detail || '';
+}
+
+function rememberPending() {
+    publishUnsent = true;
+    try {
+        localStorage.setItem(PENDING_KEY, JSON.stringify({
+            chapters: writings.chapters,
+            thoughts: writings.thoughts,
+            retired: writings.retired || [],
+            archive: archive,
+            savedAt: new Date().toISOString()
+        }));
+    } catch (error) {
+        // The open page still holds the writing until it is closed.
+    }
+}
+
+function clearPending() {
+    publishUnsent = false;
+    try { localStorage.removeItem(PENDING_KEY); } catch (error) { /* ignore */ }
+}
+
+function restorePendingWritings() {
+    let saved = null;
+    try { saved = JSON.parse(localStorage.getItem(PENDING_KEY) || 'null'); } catch (error) { saved = null; }
+    if (!saved) return false;
+    const hadChapters = Array.isArray(saved.chapters);
+    const hadThoughts = Array.isArray(saved.thoughts);
+    const hadRetired = Array.isArray(saved.retired) && saved.retired.length;
+    const hadArchive = saved.archive && Array.isArray(saved.archive.entries);
+    if (!hadChapters && !hadThoughts && !hadRetired && !hadArchive) return false;
+    if (hadChapters) writings.chapters = saved.chapters;
+    if (hadThoughts) writings.thoughts = saved.thoughts;
+    writings.retired = Array.from(new Set([].concat(writings.retired || [], saved.retired || [])));
+    if (hadArchive) {
+        archive = {
+            keptForMonths: 6,
+            entries: saved.archive.entries,
+            report: Array.isArray(saved.archive.report) ? saved.archive.report : []
+        };
+    }
+    publishUnsent = true;
+    publishLabel = 'Unsent writing';
+    return true;
+}
+
+function setFormStatus(kind) {
+    const sent = kind === 'sent';
+    const html = sent
+        ? '<div class="success-message">Sent to GitHub. The website updates within a few minutes.</div>'
+        : '<div class="error-message">Saved in this browser. Not sent to GitHub.</div>';
+    ['addChapterMessage', 'addThoughtMessage'].forEach((id) => {
+        const el = document.getElementById(id);
+        if (el && el.textContent) el.innerHTML = html;
+    });
+}
+
+function markLocalChange(label) {
+    publishLabel = label || 'This writing';
+    rememberPending();
+    setPublishTracker({
+        browser: 'done',
+        token: 'current',
+        github: 'waiting',
+        site: 'waiting'
+    }, publishLabel + ' is in this browser. It has not been sent yet.');
+    setFormStatus('held');
 }
 
 function showPanelView(view, clickedButton) {
@@ -320,9 +436,26 @@ async function loadWritings() {
     } catch (error) {
         console.error(error);
     }
+    const restored = restorePendingWritings();
     refreshArchive();
     refreshChapterLists();
     loadGitHubTokenStatus();
+    if (restored) {
+        setPublishTracker({
+            browser: 'done',
+            token: hasGitHubToken() ? 'done' : 'failed',
+            github: 'waiting',
+            site: 'waiting'
+        }, 'Unsent writing was kept in this browser. It has not been sent to GitHub.');
+        if (hasGitHubToken()) queuePublish();
+    } else {
+        setPublishTracker({
+            browser: 'waiting',
+            token: 'waiting',
+            github: 'waiting',
+            site: 'waiting'
+        }, 'Nothing is waiting to be sent.');
+    }
     if (!hasGitHubToken()) {
         showPanelView('token', document.querySelector('.panel-nav-tab[data-view="token"]'));
     }
@@ -400,8 +533,9 @@ function addChapter() {
     writings.chapters.push(draft);
     depositArchive('chapter', null, snapshotChapter(draft), 'add');
     form.reset();
-    message.innerHTML = '<div class="success-message">Chapter added. Publishing…</div>';
+    message.innerHTML = '<div class="error-message">Saved in this browser. Not sent to GitHub.</div>';
     refreshChapterLists();
+    markLocalChange('Chapter “' + draft.title + '”');
     queuePublish();
 }
 
@@ -427,6 +561,7 @@ function saveChapterFromDom(id) {
     depositArchive('chapter', before, after, 'edit');
     const heading = root.querySelector('h3');
     if (heading) heading.textContent = 'Chapter ' + chapter.number + ': ' + chapter.title;
+    markLocalChange('Chapter “' + chapter.title + '”');
     queuePublish();
 }
 
@@ -439,6 +574,7 @@ async function deleteChapter(id) {
     writings.retired = writings.retired || [];
     writings.retired.push(chapter.slug);
     refreshChapterLists();
+    markLocalChange('Deleted chapter “' + chapter.title + '”');
     queuePublish();
 }
 
@@ -607,8 +743,9 @@ function addThought() {
     writings.thoughts.push(draft);
     depositArchive('thought', null, snapshotThought(draft), 'add');
     form.reset();
-    message.innerHTML = '<div class="success-message">Thought added. Publishing…</div>';
+    message.innerHTML = '<div class="error-message">Saved in this browser. Not sent to GitHub.</div>';
     refreshChapterLists();
+    markLocalChange('Thought “' + draft.title + '”');
     queuePublish();
 }
 
@@ -634,6 +771,7 @@ function saveThoughtFromDom(id) {
     depositArchive('thought', before, after, 'edit');
     const heading = root.querySelector('h3');
     if (heading) heading.textContent = thought.title;
+    markLocalChange('Thought “' + thought.title + '”');
     queuePublish();
 }
 
@@ -644,6 +782,7 @@ async function deleteThought(id) {
     depositArchive('thought', snapshotThought(thought), null, 'delete');
     writings.thoughts = writings.thoughts.filter((item) => item.id !== id);
     refreshChapterLists();
+    markLocalChange('Deleted thought “' + thought.title + '”');
     queuePublish();
 }
 
@@ -900,6 +1039,7 @@ function restoreChapterSnapshot(snap) {
         depositArchive('chapter', before, snapshotChapter(existing), 'restore');
     }
     refreshChapterLists();
+    markLocalChange('Restored chapter “' + snap.title + '”');
     queuePublish();
 }
 
@@ -927,7 +1067,19 @@ function restoreThoughtSnapshot(snap) {
         depositArchive('thought', before, snapshotThought(existing), 'restore');
     }
     refreshChapterLists();
+    markLocalChange('Restored thought “' + snap.title + '”');
     queuePublish();
+}
+
+function markPublishFailed(message) {
+    rememberPending();
+    setPublishTracker({
+        browser: 'done',
+        token: hasGitHubToken() ? 'done' : 'failed',
+        github: 'failed',
+        site: 'waiting'
+    }, (message || 'GitHub did not accept the update.') + ' The writing is still only in this browser.');
+    setFormStatus('held');
 }
 
 function queuePublish() {
@@ -942,6 +1094,7 @@ function queuePublish() {
             }
         } catch (error) {
             console.error(error);
+            markPublishFailed(error.message || 'Could not publish.');
             showPanelToast(error.message || 'Could not publish.', true);
         } finally {
             publishing = false;
@@ -951,13 +1104,27 @@ function queuePublish() {
 
 async function publishWritings() {
     if (!hasGitHubToken()) {
+        rememberPending();
+        setPublishTracker({
+            browser: 'done',
+            token: 'failed',
+            github: 'waiting',
+            site: 'waiting'
+        }, publishLabel + ' is only in this browser. Save the GitHub token under Token Admin, and keep this page open.');
+        setFormStatus('held');
         if (!warnedLocalOnly) {
             warnedLocalOnly = true;
-            showPanelToast('Changes stay on this page until a GitHub token is saved under Token Admin.', true);
+            showPanelToast('Not sent. Save the GitHub token under Token Admin.', true);
         }
         return;
     }
-    showPanelToast('Publishing to GitHub…', false);
+    setPublishTracker({
+        browser: 'done',
+        token: 'done',
+        github: 'current',
+        site: 'waiting'
+    }, 'Token is present. Sending ' + publishLabel + ' to GitHub.');
+    showPanelToast('Sending to GitHub…', false);
     const pages = {};
     await Promise.all(ChapterSite.STATIC_PAGES.map(async (name) => {
         const response = await fetch(name + '?t=' + Date.now(), { cache: 'reload' });
@@ -998,20 +1165,20 @@ async function publishWritings() {
         await deleteGitHubFile(slug, 'Remove ' + slug + ' from control panel');
     }
     writings.retired = [];
-    const chapterMessage = document.getElementById('addChapterMessage');
-    const thoughtMessage = document.getElementById('addThoughtMessage');
-    const published = '<div class="success-message">Published ' + (names.length + 2) + ' files to GitHub.</div>';
-    if (chapterMessage && chapterMessage.textContent) chapterMessage.innerHTML = published;
-    if (thoughtMessage && thoughtMessage.textContent) thoughtMessage.innerHTML = published;
-    showPanelToast('Published to GitHub.', false);
+    clearPending();
+    setPublishTracker({
+        browser: 'done',
+        token: 'done',
+        github: 'done',
+        site: 'done'
+    }, 'GitHub accepted the update. The website updates within a few minutes.');
+    setFormStatus('sent');
+    showPanelToast('GitHub accepted the update.', false);
 }
 
-function githubHeaders(token) {
-    return {
-        Authorization: 'token ' + token,
-        Accept: 'application/vnd.github.v3+json',
-        'Content-Type': 'application/json'
-    };
+async function readGitHubError(response, fallback) {
+    const error = await response.json().catch(() => ({}));
+    return githubErrorMessage(error, fallback) + ' (' + response.status + ')';
 }
 
 function unicodeToBase64(str) {
@@ -1029,12 +1196,11 @@ async function updateGitHubFile(filename, content, message) {
     const check = await fetch(url + '?ref=' + encodeURIComponent(GITHUB_CONFIG.branch), { headers: githubHeaders(token) });
     if (check.ok) sha = (await check.json()).sha;
     else if (check.status !== 404) {
-        const error = await check.json().catch(() => ({}));
-        throw new Error(error.message || 'Could not read ' + filename + ' from GitHub');
+        throw new Error(await readGitHubError(check, 'Could not read ' + filename + ' from GitHub'));
     }
     const response = await fetch(url, {
         method: 'PUT',
-        headers: githubHeaders(token),
+        headers: githubHeaders(token, true),
         body: JSON.stringify({
             message: message || ('Update ' + filename),
             content: unicodeToBase64(content),
@@ -1043,8 +1209,7 @@ async function updateGitHubFile(filename, content, message) {
         })
     });
     if (!response.ok) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || 'Failed to update ' + filename);
+        throw new Error(await readGitHubError(response, 'Failed to update ' + filename));
     }
 }
 
@@ -1055,18 +1220,16 @@ async function deleteGitHubFile(filename, message) {
     const check = await fetch(url + '?ref=' + encodeURIComponent(GITHUB_CONFIG.branch), { headers: githubHeaders(token) });
     if (check.status === 404) return;
     if (!check.ok) {
-        const error = await check.json().catch(() => ({}));
-        throw new Error(error.message || 'Could not read ' + filename + ' for deletion');
+        throw new Error(await readGitHubError(check, 'Could not read ' + filename + ' for deletion'));
     }
     const sha = (await check.json()).sha;
     const response = await fetch(url, {
         method: 'DELETE',
-        headers: githubHeaders(token),
+        headers: githubHeaders(token, true),
         body: JSON.stringify({ message: message || ('Remove ' + filename), sha, branch: GITHUB_CONFIG.branch })
     });
     if (!response.ok && response.status !== 404) {
-        const error = await response.json().catch(() => ({}));
-        throw new Error(error.message || 'Failed to delete ' + filename);
+        throw new Error(await readGitHubError(response, 'Failed to delete ' + filename));
     }
 }
 
