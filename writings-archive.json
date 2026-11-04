@@ -2,6 +2,32 @@
   "keptForMonths": 6,
   "entries": [
     {
+      "id": "ar-mw2m6flh-0cf8",
+      "at": 1793826828917,
+      "day": "2026-11-04",
+      "dayLabel": "4 Nov 2026",
+      "action": "add",
+      "kind": "thought",
+      "itemId": "th-002",
+      "title": "This is a test",
+      "number": null,
+      "linesAdded": 5,
+      "linesRemoved": 0,
+      "titleChanged": false,
+      "numberChanged": false,
+      "writtenChanged": false,
+      "before": null,
+      "after": {
+        "id": "th-002",
+        "title": "This is a test",
+        "anchor": "this-is-a-test",
+        "written": "Nov 2026",
+        "savedAt": 1793826828916,
+        "bodyHtml": "<div class=\"doc-p\">Checking if it works as I expected</div>\n<div class=\"doc-blank\"></div>\n<div class=\"doc-p\">Testing 123</div>\n<div class=\"doc-blank\"></div>\n<div class=\"doc-p\">done</div>"
+      },
+      "summary": "4 Nov 2026 — Musing, This is a test: added, 5 lines added"
+    },
+    {
       "id": "ar-mw24k77i-81c1",
       "at": 1793797238142,
       "day": "2026-11-04",
@@ -33,6 +59,18 @@
       "day": "2026-11-04",
       "dayLabel": "4 Nov 2026",
       "changes": [
+        {
+          "id": "ar-mw2m6flh-0cf8",
+          "at": 1793826828917,
+          "action": "add",
+          "kind": "thought",
+          "itemId": "th-002",
+          "title": "This is a test",
+          "number": null,
+          "linesAdded": 5,
+          "linesRemoved": 0,
+          "summary": "4 Nov 2026 — Musing, This is a test: added, 5 lines added"
+        },
         {
           "id": "ar-mw24k77i-81c1",
           "at": 1793797238142,
