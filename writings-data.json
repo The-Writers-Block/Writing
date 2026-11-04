@@ -75,6 +75,14 @@
   ],
   "thoughts": [
     {
+      "id": "th-002",
+      "title": "This is a test",
+      "anchor": "this-is-a-test",
+      "written": "Nov 2026",
+      "savedAt": 1793826828916,
+      "bodyHtml": "<div class=\"doc-p\">Checking if it works as I expected</div>\n<div class=\"doc-blank\"></div>\n<div class=\"doc-p\">Testing 123</div>\n<div class=\"doc-blank\"></div>\n<div class=\"doc-p\">done</div>"
+    },
+    {
       "id": "th-001",
       "title": "Secrets, truths and lies",
       "anchor": "secrets-truths-and-lies",
