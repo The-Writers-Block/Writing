@@ -385,6 +385,25 @@ main p {
   margin-bottom: 1rem;
 }
 
+body.musings-page .header-inner,
+body.musings-page .footer-inner,
+body.musings-page main,
+body:has(article.musing) .header-inner,
+body:has(article.musing) .footer-inner,
+body:has(article.musing) main {
+  max-width: none;
+  width: 100%;
+}
+
+body.musings-page main,
+body:has(article.musing) main {
+  flex: 1 0 auto;
+  min-height: calc(100vh - 7.5rem);
+  padding: 2.5rem 4vw 3rem;
+  border-left: none;
+  border-right: none;
+}
+
 .doc .doc-p {
   margin: 0 0 0.67em;            /* Word's 8pt space after */
 }
