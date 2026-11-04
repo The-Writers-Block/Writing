@@ -1,5 +1,51 @@
 {
   "keptForMonths": 6,
-  "entries": [],
-  "report": []
+  "entries": [
+    {
+      "id": "ar-mw24k77i-81c1",
+      "at": 1793797238142,
+      "day": "2026-11-04",
+      "dayLabel": "4 Nov 2026",
+      "action": "add",
+      "kind": "thought",
+      "itemId": "th-001",
+      "title": "Secrets, truths and lies",
+      "number": null,
+      "linesAdded": 16,
+      "linesRemoved": 0,
+      "titleChanged": false,
+      "numberChanged": false,
+      "writtenChanged": false,
+      "before": null,
+      "after": {
+        "id": "th-001",
+        "title": "Secrets, truths and lies",
+        "anchor": "secrets-truths-and-lies",
+        "written": "November 2026",
+        "savedAt": 1793797238142,
+        "bodyHtml": "<div class=\"doc-p\">Someone asked me once quite recently</div>\n<div class=\"doc-p\">so Richard what have you done with your life</div>\n<div class=\"doc-p\">I said well I have squandered it wasted much of it in failing relationships I have spent most of my life in active addiction homeless in prisons secure units heavily medicated up to the eye balls to the point of incapacitation and spent the majority of my time scratching round</div>\n<div class=\"doc-p\">in gutters begging and poncing for a few quid to feed my daily heroin and crack cocaine addiction</div>\n<div class=\"doc-p\">but she asked me again</div>\n<div class=\"doc-p\">and this time she asked me to answer with complete truth and absolute honestly</div>\n<div class=\"doc-p\">leaving no stone unturned</div>\n<div class=\"doc-p\">I said I cant do that</div>\n<div class=\"doc-p\">she said why not</div>\n<div class=\"doc-p\">I said because its classified</div>\n<div class=\"doc-blank\"></div>\n<div class=\"doc-p\">To be continued.....</div>\n<div class=\"doc-blank\"></div>\n<div class=\"doc-p\">007 James bond Theme</div>\n<div class=\"doc-blank\"></div>\n<div class=\"doc-p\">Secrets truths and lies</div>"
+      },
+      "summary": "4 Nov 2026 — Musing, Secrets, truths and lies: added, 16 lines added"
+    }
+  ],
+  "report": [
+    {
+      "day": "2026-11-04",
+      "dayLabel": "4 Nov 2026",
+      "changes": [
+        {
+          "id": "ar-mw24k77i-81c1",
+          "at": 1793797238142,
+          "action": "add",
+          "kind": "thought",
+          "itemId": "th-001",
+          "title": "Secrets, truths and lies",
+          "number": null,
+          "linesAdded": 16,
+          "linesRemoved": 0,
+          "summary": "4 Nov 2026 — Musing, Secrets, truths and lies: added, 16 lines added"
+        }
+      ]
+    }
+  ]
 }
